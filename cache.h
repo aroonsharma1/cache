@@ -70,6 +70,7 @@ void dump_settings();
 void print_stats();
 void print_cache();
 void print_set_contents();
+void access_to_cache(cache c, unsigned addr, unsigned access_type);
 
 /* macros */
 #define LOG2(x) ((int)( log((double)(x)) / log(2) ))
