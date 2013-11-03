@@ -314,9 +314,11 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 		if(access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE) {
 			cache_stat_data.accesses++;
 			cache_stat_data.misses++;
-			cache_stat_data.demand_fetches += cache_block_size/4;
+			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+				cache_stat_data.demand_fetches += cache_block_size/4;				
+			}
 			
-			if(access_type == TRACE_DATA_STORE) {
+			if(access_type == TRACE_DATA_STORE && cache_writealloc == TRUE) {
 				if(cache_writeback == TRUE) {
 					line->dirty = TRUE;					
 				}
@@ -325,15 +327,21 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 					cache_stat_data.copies_back++;
 				}
 			}
+			else if(access_type == TRACE_DATA_STORE && cache_writealloc == FALSE){
+				cache_stat_data.copies_back++;				
+			}
 		}
 		else if(access_type == TRACE_INST_LOAD) {
 			cache_stat_inst.accesses++;
 			cache_stat_inst.misses++;
-			cache_stat_inst.demand_fetches += cache_block_size/4;			
-
+			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+				cache_stat_inst.demand_fetches += cache_block_size/4;				
+			}
 		}
-		insert(&c.LRU_head[index], &c.LRU_tail[index], line);			
-		c.set_contents[index]++;
+		if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+			insert(&c.LRU_head[index], &c.LRU_tail[index], line);			
+			c.set_contents[index]++;
+		}
 	}
 	else {
 		//check for cache hit
@@ -361,6 +369,7 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 				return;
 			}
 		}
+		//cache miss
 		if(c.set_contents[index] < cache_assoc) {
 			//non-full cache set
 			Pcache_line line = malloc(sizeof(cache_line));
@@ -368,9 +377,11 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 			if(access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE) {
 				cache_stat_data.accesses++;
 				cache_stat_data.misses++;
-				cache_stat_data.demand_fetches += cache_block_size/4;				
+				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+					cache_stat_data.demand_fetches += cache_block_size/4;									
+				}
 				
-				if(access_type == TRACE_DATA_STORE) {
+				if(access_type == TRACE_DATA_STORE && cache_writealloc == TRUE) {
 					if(cache_writeback == TRUE) {
 						line->dirty = TRUE;						
 					}
@@ -379,24 +390,26 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 						cache_stat_data.copies_back++;
 					}
 				}
+				else if(access_type == TRACE_DATA_STORE && cache_writealloc == FALSE){
+					cache_stat_data.copies_back++;
+				}
 			}
 			else if(access_type == TRACE_INST_LOAD) {
 				cache_stat_inst.accesses++;
 				cache_stat_inst.misses++;
-				cache_stat_inst.demand_fetches += cache_block_size/4;				
+				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+					cache_stat_inst.demand_fetches += cache_block_size/4;
+				}				
 			}
-			insert(&c.LRU_head[index], &c.LRU_tail[index], line);	
-			c.set_contents[index]++;
+			
+			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+				insert(&c.LRU_head[index], &c.LRU_tail[index], line);	
+				c.set_contents[index]++;	
+			}
 		}
 		else {
 			//cache miss and eviction
 			
-			if(c.LRU_tail[index]->dirty == TRUE && (access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE)) {
-				cache_stat_data.copies_back += cache_block_size/4;
-			}
-			else if(c.LRU_tail[index]->dirty == TRUE && access_type == TRACE_INST_LOAD) {
-				cache_stat_inst.copies_back += cache_block_size/4;
-			}
 			Pcache_line line = malloc(sizeof(cache_line));
 			line->dirty = FALSE;
 			line->tag = tag;
@@ -404,10 +417,12 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 			if(access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE) {
 				cache_stat_data.accesses++;
 				cache_stat_data.misses++;
-				cache_stat_data.replacements++;
-				cache_stat_data.demand_fetches += cache_block_size/4;	
+				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+					cache_stat_data.replacements++;
+					cache_stat_data.demand_fetches += cache_block_size/4;	
+				}	
 				
-				if(access_type == TRACE_DATA_STORE) {
+				if(access_type == TRACE_DATA_STORE && cache_writealloc == TRUE) {
 					if(cache_writeback == TRUE) {
 						line->dirty = TRUE;						
 					}
@@ -416,15 +431,29 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 						cache_stat_data.copies_back++;
 					}
 				}
+				else if(access_type == TRACE_DATA_STORE && cache_writealloc == FALSE){
+					cache_stat_data.copies_back++;					
+				}
 			}
 			else if(access_type == TRACE_INST_LOAD) {
 				cache_stat_inst.accesses++;
 				cache_stat_inst.misses++;
-				cache_stat_inst.replacements++;
-				cache_stat_inst.demand_fetches += cache_block_size/4;	
+				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+					cache_stat_inst.replacements++;
+					cache_stat_inst.demand_fetches += cache_block_size/4;	
+				}				
 			}
-			delete(&c.LRU_head[index], &c.LRU_tail[index], c.LRU_tail[index]);
-			insert(&c.LRU_head[index], &c.LRU_tail[index], line);	
+			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
+				if(c.LRU_tail[index]->dirty == TRUE && (access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE)) {
+					cache_stat_data.copies_back += cache_block_size/4;
+				}
+				else if(c.LRU_tail[index]->dirty == TRUE && access_type == TRACE_INST_LOAD) {
+					cache_stat_inst.copies_back += cache_block_size/4;
+				}
+				
+				delete(&c.LRU_head[index], &c.LRU_tail[index], c.LRU_tail[index]);
+				insert(&c.LRU_head[index], &c.LRU_tail[index], line);
+			}
 		}
 	}
 }
