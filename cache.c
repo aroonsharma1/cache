@@ -314,10 +314,8 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 		if(access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE) {
 			cache_stat_data.accesses++;
 			cache_stat_data.misses++;
-			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-				cache_stat_data.demand_fetches += cache_block_size/4;
-
-			}
+			cache_stat_data.demand_fetches += cache_block_size/4;
+			
 			if(access_type == TRACE_DATA_STORE) {
 				if(cache_writeback == TRUE) {
 					line->dirty = TRUE;					
@@ -331,14 +329,11 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 		else if(access_type == TRACE_INST_LOAD) {
 			cache_stat_inst.accesses++;
 			cache_stat_inst.misses++;
-			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-				cache_stat_inst.demand_fetches += cache_block_size/4;			
-			}
+			cache_stat_inst.demand_fetches += cache_block_size/4;			
+
 		}
-		if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-			insert(&c.LRU_head[index], &c.LRU_tail[index], line);			
-			c.set_contents[index]++;
-		}
+		insert(&c.LRU_head[index], &c.LRU_tail[index], line);			
+		c.set_contents[index]++;
 	}
 	else {
 		//check for cache hit
@@ -373,9 +368,8 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 			if(access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE) {
 				cache_stat_data.accesses++;
 				cache_stat_data.misses++;
-				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-					cache_stat_data.demand_fetches += cache_block_size/4;				
-				}
+				cache_stat_data.demand_fetches += cache_block_size/4;				
+				
 				if(access_type == TRACE_DATA_STORE) {
 					if(cache_writeback == TRUE) {
 						line->dirty = TRUE;						
@@ -389,14 +383,10 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 			else if(access_type == TRACE_INST_LOAD) {
 				cache_stat_inst.accesses++;
 				cache_stat_inst.misses++;
-				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-					cache_stat_inst.demand_fetches += cache_block_size/4;				
-				}
+				cache_stat_inst.demand_fetches += cache_block_size/4;				
 			}
-			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-				insert(&c.LRU_head[index], &c.LRU_tail[index], line);	
-				c.set_contents[index]++;			
-			}
+			insert(&c.LRU_head[index], &c.LRU_tail[index], line);	
+			c.set_contents[index]++;
 		}
 		else {
 			//cache miss and eviction
@@ -414,10 +404,9 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 			if(access_type == TRACE_DATA_LOAD || access_type == TRACE_DATA_STORE) {
 				cache_stat_data.accesses++;
 				cache_stat_data.misses++;
-				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-					cache_stat_data.replacements++;
-					cache_stat_data.demand_fetches += cache_block_size/4;				
-				}
+				cache_stat_data.replacements++;
+				cache_stat_data.demand_fetches += cache_block_size/4;	
+				
 				if(access_type == TRACE_DATA_STORE) {
 					if(cache_writeback == TRUE) {
 						line->dirty = TRUE;						
@@ -431,15 +420,11 @@ void access_to_cache(cache c, unsigned addr, unsigned access_type) {
 			else if(access_type == TRACE_INST_LOAD) {
 				cache_stat_inst.accesses++;
 				cache_stat_inst.misses++;
-				if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-					cache_stat_inst.replacements++;
-					cache_stat_inst.demand_fetches += cache_block_size/4;				
-				}
+				cache_stat_inst.replacements++;
+				cache_stat_inst.demand_fetches += cache_block_size/4;	
 			}
-			if(cache_writealloc == TRUE || access_type != TRACE_DATA_STORE) {
-				delete(&c.LRU_head[index], &c.LRU_tail[index], c.LRU_tail[index]);
-				insert(&c.LRU_head[index], &c.LRU_tail[index], line);	
-			}
+			delete(&c.LRU_head[index], &c.LRU_tail[index], c.LRU_tail[index]);
+			insert(&c.LRU_head[index], &c.LRU_tail[index], line);	
 		}
 	}
 }
